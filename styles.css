@@ -355,6 +355,9 @@ body.rtl #lang-ug {
   cursor: pointer;
   border-radius: 12px;
   transition: all 0.3s;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;

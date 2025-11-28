@@ -436,31 +436,17 @@ class WholesaleCRM {
     const self = this;
     document.addEventListener('click', function(e) {
       // 首先检查是否点击了导航按钮或其内部元素（优先级最高）
-      // 检查点击的元素是否在导航栏内
-      const nav = e.target.closest('nav.main-nav');
-      if (nav) {
-        // 在导航栏内，查找最近的nav-btn
-        let navBtn = e.target.closest('.nav-btn');
-        // 如果没找到，可能是点击了span，向上查找
-        if (!navBtn) {
-          let element = e.target;
-          while (element && element !== nav) {
-            if (element.classList && element.classList.contains('nav-btn')) {
-              navBtn = element;
-              break;
-            }
-            element = element.parentElement;
-          }
+      // 直接查找最近的 .nav-btn，无论点击的是按钮本身还是内部的 span
+      const navBtn = e.target.closest('.nav-btn');
+      if (navBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        const page = navBtn.dataset.page || navBtn.getAttribute('data-page');
+        if (page) {
+          self.showPage(page);
         }
-        if (navBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          const page = navBtn.dataset.page;
-          if (page) {
-            self.showPage(page);
-          }
-          return false;
-        }
+        return false;
       }
       
       // 检查是否点击了兑换积分按钮或其内部元素
@@ -637,6 +623,11 @@ class WholesaleCRM {
   }
   
   showPage(pageName) {
+    if (!pageName) {
+      console.error('showPage: pageName is required');
+      return;
+    }
+    
     // 隐藏所有页面
     document.querySelectorAll('.page').forEach(page => {
       page.classList.remove('active');
@@ -649,36 +640,39 @@ class WholesaleCRM {
     
     // 显示目标页面
     const targetPage = document.getElementById(`${pageName}-page`);
-    if (targetPage) {
-      targetPage.classList.add('active');
-      const navBtn = document.querySelector(`[data-page="${pageName}"]`);
-      if (navBtn) {
-        navBtn.classList.add('active');
-      }
-      this.currentPage = pageName;
-      
-      // 页面特定的加载
-      if (pageName === 'dashboard') {
-        // 延迟一下确保DOM已渲染
-        setTimeout(() => {
-          this.updateDashboard();
-        }, 100);
-      } else if (pageName === 'customers') {
-        this.loadCustomersList();
-      } else if (pageName === 'products') {
-        this.loadProductsList();
-      } else if (pageName === 'transaction') {
-        this.loadCustomerSelect();
-        this.loadProductSelect();
-        // 设置交易日期为今天
-        setTimeout(() => {
-          const today = new Date().toISOString().split('T')[0];
-          const dateInput = document.getElementById('date-input');
-          if (dateInput) {
-            dateInput.value = today;
-          }
-        }, 100);
-      }
+    if (!targetPage) {
+      console.error(`showPage: Page "${pageName}-page" not found`);
+      return;
+    }
+    
+    targetPage.classList.add('active');
+    const navBtn = document.querySelector(`[data-page="${pageName}"]`);
+    if (navBtn) {
+      navBtn.classList.add('active');
+    }
+    this.currentPage = pageName;
+    
+    // 页面特定的加载
+    if (pageName === 'dashboard') {
+      // 延迟一下确保DOM已渲染
+      setTimeout(() => {
+        this.updateDashboard();
+      }, 100);
+    } else if (pageName === 'customers') {
+      this.loadCustomersList();
+    } else if (pageName === 'products') {
+      this.loadProductsList();
+    } else if (pageName === 'transaction') {
+      this.loadCustomerSelect();
+      this.loadProductSelect();
+      // 设置交易日期为今天
+      setTimeout(() => {
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('date-input');
+        if (dateInput) {
+          dateInput.value = today;
+        }
+      }, 100);
     }
   }
   
