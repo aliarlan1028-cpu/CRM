@@ -328,7 +328,8 @@ body.rtl #lang-ug {
   z-index: 99999 !important;
   border-top: 1px solid rgba(0,0,0,0.05);
   margin: 0 !important;
-  /* 确保导航栏始终在视口底部，不受键盘弹起影响 */
+  margin-bottom: 0 !important;
+  /* 确保导航栏始终在视口底部，不受键盘弹起和滚动影响 */
   transform: translate3d(0, 0, 0) !important;
   -webkit-transform: translate3d(0, 0, 0) !important;
   /* 防止在移动端滚动时移动 */
@@ -338,6 +339,9 @@ body.rtl #lang-ug {
   /* 防止键盘弹起时移动 */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+  /* 确保导航栏不受页面滚动影响 */
+  top: auto !important;
+  height: auto !important;
 }
 
 .nav-btn {

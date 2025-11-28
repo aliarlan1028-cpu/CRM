@@ -218,6 +218,9 @@ class WholesaleCRM {
     const nav = document.querySelector('.main-nav');
     if (!nav) return;
     
+    // 存储 rafId 以便清理
+    let rafId = null;
+    
     // 保存初始底部位置
     const setNavPosition = () => {
       const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
@@ -253,6 +256,42 @@ class WholesaleCRM {
     window.addEventListener('resize', () => {
       setNavPosition();
     });
+    
+    // 监听页面滚动事件，确保导航栏始终在底部
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+      // 立即修复位置
+      setNavPosition();
+      // 清除之前的定时器
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
+      }
+      // 滚动结束后再次确保位置正确
+      scrollTimeout = setTimeout(() => {
+        setNavPosition();
+      }, 50);
+    }, { passive: true });
+    
+    // 使用 requestAnimationFrame 持续监控并修复位置
+    let rafId = null;
+    const checkNavPosition = () => {
+      const computedStyle = window.getComputedStyle(nav);
+      const rect = nav.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // 如果导航栏不在底部，强制修复
+      if (computedStyle.position !== 'fixed' || 
+          computedStyle.bottom !== '0px' || 
+          Math.abs(rect.bottom - windowHeight) > 1) { // 允许1px的误差
+        setNavPosition();
+      }
+      
+      rafId = requestAnimationFrame(checkNavPosition);
+    };
+    checkNavPosition();
+    
+    // 存储清理函数（如果需要的话）
+    this._navPositionRafId = rafId;
     
     // 监听输入框焦点事件
     const handleInputFocus = () => {
