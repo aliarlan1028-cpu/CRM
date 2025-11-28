@@ -601,7 +601,17 @@ class WholesaleCRM {
     // 返回按钮
     document.querySelectorAll('.back-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.showPage('customers');
+        // 根据当前页面状态，返回到对应的列表页面
+        if (this.currentPage === 'customer-detail') {
+          // 从客户详情页返回客户列表页
+          this.showPage('customers');
+        } else if (this.currentPage === 'product-detail') {
+          // 从商品详情页返回商品列表页
+          this.showPage('products');
+        } else {
+          // 默认返回客户列表页（向后兼容）
+          this.showPage('customers');
+        }
       });
     });
     
