@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="description" content="批发个体商户管理系统">
+    <title>批发CRM系统</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- 维吾尔语字体选项：Noto Sans Arabic, Scheherazade New, Amiri, Almarai -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+Arabic:wght@400;500;700&family=Scheherazade+New:wght@400;700&family=Amiri:wght@400;700&family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部栏：广告和语言选择 -->
+        <div class="top-bar">
+            <!-- 广告横幅 -->
+            <div class="ad-banner">
+                <div class="ad-content">
+                    <div class="ad-icon">💇‍♀️</div>
+                    <div class="ad-text">
+                        <div class="ad-title" data-i18n="ad.title">买美容美发产品，认准岳普湖美容美发批发店</div>
+                        <div class="ad-contact">
+                            <span class="ad-phone-icon">📞</span>
+                            <a href="tel:1379711833" class="ad-phone-link">1379711833</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 语言切换 -->
+            <div class="language-switcher">
+                <button id="lang-zh" class="lang-btn active">中文</button>
+                <button id="lang-ug" class="lang-btn">ئۇيغۇرچە</button>
+            </div>
+        </div>
+
+        <!-- 导航栏 -->
+        <nav class="main-nav">
+            <button class="nav-btn nav-dashboard active" data-page="dashboard">
+                <span data-i18n="nav.dashboard">仪表盘</span>
+            </button>
+            <button class="nav-btn nav-transaction" data-page="transaction">
+                <span data-i18n="nav.transaction">交易记录</span>
+            </button>
+            <button class="nav-btn nav-customers" data-page="customers">
+                <span data-i18n="nav.customers">客户</span>
+            </button>
+            <button class="nav-btn nav-products" data-page="products">
+                <span data-i18n="nav.products">商品</span>
+            </button>
+        </nav>
+
+        <!-- 仪表盘页面 -->
+        <div id="dashboard-page" class="page active">
+            <h1 data-i18n="dashboard.title">业务仪表盘</h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card stat-card-primary">
+                    <h3 data-i18n="dashboard.totalRevenue">累计交易额</h3>
+                    <p class="stat-value" id="total-revenue">¥0</p>
+                </div>
+                <div class="stat-card stat-card-success">
+                    <h3 data-i18n="dashboard.monthlyRevenue">本月累计交易额</h3>
+                    <p class="stat-value" id="monthly-revenue">¥0</p>
+                </div>
+                <div class="stat-card stat-card-info">
+                    <h3 data-i18n="dashboard.todayRevenue">今日交易额</h3>
+                    <p class="stat-value" id="today-revenue">¥0</p>
+                </div>
+                <div class="stat-card stat-card-warning">
+                    <h3 data-i18n="dashboard.totalCustomers">总客户数</h3>
+                    <p class="stat-value" id="total-customers">0</p>
+                </div>
+                <div class="stat-card stat-card-secondary">
+                    <h3 data-i18n="dashboard.totalProducts">总商品数</h3>
+                    <p class="stat-value" id="total-products">0</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 data-i18n="dashboard.lowStockAlert">即将售罄商品</h2>
+                <div class="card">
+                    <ul id="low-stock-products" class="list"></ul>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="dashboard.salesTrend">销售额历史趋势</h2>
+                <div class="card chart-card">
+                    <canvas id="sales-trend-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="dashboard.paymentStructure">收入结构</h2>
+                <div class="card chart-card">
+                    <canvas id="payment-structure-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="dashboard.shortTerm">月度榜单</h2>
+                <div class="charts-grid">
+                    <div class="card chart-card">
+                        <h3 data-i18n="dashboard.topCustomersMonth">近一个月购买力前十客户</h3>
+                        <canvas id="top-customers-month-chart"></canvas>
+                    </div>
+                    <div class="card chart-card">
+                        <h3 data-i18n="dashboard.topProductsMonth">近一个月畅销前十商品</h3>
+                        <canvas id="top-products-month-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="dashboard.longTerm">总榜单</h2>
+                <div class="card chart-card">
+                    <h3 data-i18n="dashboard.topCustomersAll">累计交易额前十客户</h3>
+                    <canvas id="top-customers-all-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 交易记录页面 -->
+        <div id="transaction-page" class="page">
+            <h1 data-i18n="transaction.title">添加交易记录</h1>
+            
+            <form id="transaction-form" class="form">
+                <div class="form-group">
+                    <label data-i18n="transaction.customer">客户名字</label>
+                    <div class="select-wrapper">
+                        <div id="customer-select-container" class="scrollable-select">
+                            <div class="select-search">
+                                <input type="text" id="customer-select-search" placeholder="" data-i18n-placeholder="customers.search">
+                            </div>
+                            <div id="customer-radio-group" class="radio-group"></div>
+                        </div>
+                        <button type="button" class="btn-secondary btn-add-inline" id="add-customer-inline-btn" data-i18n="customers.addNew">+ 添加客户</button>
+                    </div>
+                    <input type="hidden" id="selected-customer" required>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="transaction.products">商品名称（可多选）</label>
+                    <div class="select-wrapper">
+                        <div id="product-select-container" class="scrollable-select">
+                            <div class="select-search">
+                                <input type="text" id="product-select-search" placeholder="" data-i18n-placeholder="products.search">
+                            </div>
+                            <div id="product-checkboxes" class="checkbox-group scrollable"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="transaction.quantity">商品数量</label>
+                    <div id="quantity-inputs"></div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="transaction.amount">购买金额</label>
+                    <input type="number" id="amount-input" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="transaction.paymentMethod">支付方式</label>
+                    <select id="payment-method-select" required>
+                        <option value="full" data-i18n="transaction.fullPayment">全额支付</option>
+                        <option value="partial" data-i18n="transaction.partialPayment">部分支付</option>
+                        <option value="debt" data-i18n="transaction.debt">欠款</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="paid-amount-group" style="display: none;">
+                    <label data-i18n="transaction.paidAmount">支付金额</label>
+                    <input type="number" id="paid-amount-input" step="0.01" min="0">
+                </div>
+
+                <div class="form-group" id="debt-amount-group" style="display: none;">
+                    <label data-i18n="transaction.debtAmount">欠款金额</label>
+                    <input type="number" id="debt-amount-input" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="transaction.date">交易日期</label>
+                    <input type="date" id="date-input" required>
+                </div>
+
+                <button type="submit" class="btn-primary" data-i18n="transaction.submit">提交</button>
+            </form>
+
+            <div class="section">
+                <h2 data-i18n="transaction.recent">最近交易</h2>
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label data-i18n="transaction.filterDate">筛选日期：</label>
+                        <input type="date" id="filter-start-date" class="filter-date">
+                        <span>至</span>
+                        <input type="date" id="filter-end-date" class="filter-date">
+                        <button type="button" class="btn-secondary" id="filter-transactions-btn" data-i18n="transaction.filter">筛选</button>
+                        <button type="button" class="btn-secondary" id="reset-filter-btn" data-i18n="transaction.reset">重置</button>
+                    </div>
+                </div>
+                <div id="recent-transactions" class="transaction-list"></div>
+            </div>
+        </div>
+
+        <!-- 客户列表页面 -->
+        <div id="customers-page" class="page">
+            <h1 data-i18n="customers.title">客户列表</h1>
+            
+            <div class="page-header-actions">
+                <div class="search-box">
+                    <input type="text" id="customer-search" placeholder="" data-i18n-placeholder="customers.search">
+                </div>
+                <button class="btn-primary btn-add" id="add-customer-btn" data-i18n="customers.addNew">+ 添加客户</button>
+            </div>
+
+            <div id="customers-list" class="customers-list"></div>
+        </div>
+
+        <!-- 商品列表页面 -->
+        <div id="products-page" class="page">
+            <h1 data-i18n="products.title">商品列表</h1>
+            
+            <div class="page-header-actions">
+                <div class="search-box">
+                    <input type="text" id="product-search" placeholder="" data-i18n-placeholder="products.search">
+                </div>
+                <button class="btn-primary btn-add" id="add-product-btn" data-i18n="products.addNew">+ 添加商品</button>
+            </div>
+
+            <div id="products-list" class="products-list"></div>
+        </div>
+
+        <!-- 客户详情页面 -->
+        <div id="customer-detail-page" class="page">
+            <button class="back-btn" data-i18n="common.back">返回</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 id="customer-detail-name" style="margin: 0;"></h1>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-primary" id="edit-customer-btn" data-i18n="common.edit" style="padding: 8px 16px; font-size: 14px; min-width: auto; width: auto;">编辑</button>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 data-i18n="customerDetail.monthlyRevenue">本月交易额</h3>
+                    <p class="stat-value" id="customer-monthly-revenue">¥0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="customerDetail.totalRevenue">累计交易金额</h3>
+                    <p class="stat-value" id="customer-total-revenue">¥0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="customerDetail.currentPoints">当前累计积分</h3>
+                    <p class="stat-value" id="customer-current-points">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="customerDetail.totalDebt">累计欠款金额</h3>
+                    <p class="stat-value" id="customer-total-debt">¥0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="customerDetail.paidAmount">已还款</h3>
+                    <p class="stat-value" id="customer-paid-amount">¥0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="customerDetail.pendingDebt">待还款</h3>
+                    <p class="stat-value" id="customer-pending-debt">¥0</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="customerDetail.topProducts">购买的前10商品</h2>
+                <ul id="customer-top-products" class="list"></ul>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="customerDetail.paymentHistory">还款记录</h2>
+                <button class="btn-primary" id="record-payment-btn" data-i18n="customerDetail.recordPayment">已收款</button>
+                <ul id="payment-history" class="list"></ul>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="customerDetail.pointsHistory">积分兑换记录</h2>
+                <button class="btn-primary" id="redeem-points-btn" data-i18n="customerDetail.redeem">兑换积分</button>
+                <ul id="points-history" class="list"></ul>
+            </div>
+        </div>
+
+        <!-- 商品详情页面 -->
+        <div id="product-detail-page" class="page">
+            <button class="back-btn" data-i18n="common.back">返回</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1 id="product-detail-name" style="margin: 0;"></h1>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-primary" id="edit-product-btn" data-i18n="common.edit" style="padding: 8px 16px; font-size: 14px; min-width: auto; width: auto;">编辑</button>
+                    <button class="btn-primary" id="restock-product-btn" data-i18n="productDetail.restock" style="padding: 8px 16px; font-size: 14px; min-width: auto; width: auto;">补货</button>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 data-i18n="productDetail.monthlySales">本月销量</h3>
+                    <p class="stat-value" id="product-monthly-sales">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="productDetail.totalQuantity">总数量</h3>
+                    <p class="stat-value" id="product-total-quantity">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 data-i18n="productDetail.remainingQuantity">剩余数量</h3>
+                    <p class="stat-value" id="product-remaining-quantity">0</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 data-i18n="productDetail.topCustomers">购买该商品的前10用户</h2>
+                <ul id="product-top-customers" class="list"></ul>
+            </div>
+        </div>
+
+        <!-- 添加客户模态框 -->
+        <div id="add-customer-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="customers.addNew">添加客户</h2>
+                <input type="text" id="new-customer-name" placeholder="" data-i18n-placeholder="customers.customerName">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="save-customer-btn" data-i18n="common.save">保存</button>
+                    <button class="btn-secondary" id="cancel-customer-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加商品模态框 -->
+        <div id="add-product-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="products.addNew">添加商品</h2>
+                <input type="text" id="new-product-name" placeholder="" data-i18n-placeholder="products.productName">
+                <input type="number" id="new-product-quantity" placeholder="" data-i18n-placeholder="products.totalQuantity" min="0" step="1" value="0">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="save-product-btn" data-i18n="common.save">保存</button>
+                    <button class="btn-secondary" id="cancel-product-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 记录还款模态框 -->
+        <div id="record-payment-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="customerDetail.recordPayment">已收款</h2>
+                <p data-i18n="customerDetail.pendingDebt">待还款: <span id="pending-debt-amount">¥0</span></p>
+                <input type="number" id="payment-amount-input" placeholder="" data-i18n-placeholder="customerDetail.paymentAmount" step="0.01" min="0">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="confirm-payment-btn" data-i18n="common.confirm">确认</button>
+                    <button class="btn-secondary" id="cancel-payment-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 补货模态框 -->
+        <div id="restock-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="productDetail.restock">补货</h2>
+                <p data-i18n="productDetail.remainingQuantity">剩余数量: <span id="current-remaining-quantity">0</span></p>
+                <input type="number" id="restock-quantity-input" placeholder="" data-i18n-placeholder="productDetail.restockQuantity" min="1" step="1">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="confirm-restock-btn" data-i18n="common.confirm">确认</button>
+                    <button class="btn-secondary" id="cancel-restock-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑客户模态框 -->
+        <div id="edit-customer-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="common.edit">编辑客户</h2>
+                <input type="text" id="edit-customer-name-input" placeholder="" data-i18n-placeholder="customers.customerName">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="save-edit-customer-btn" data-i18n="common.save">保存</button>
+                    <button class="btn-secondary" id="cancel-edit-customer-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑商品模态框 -->
+        <div id="edit-product-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="common.edit">编辑商品</h2>
+                <input type="text" id="edit-product-name-input" placeholder="" data-i18n-placeholder="products.productName">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="save-edit-product-btn" data-i18n="common.save">保存</button>
+                    <button class="btn-secondary" id="cancel-edit-product-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 兑换积分模态框 -->
+        <div id="redeem-modal" class="modal">
+            <div class="modal-content">
+                <h2 data-i18n="customerDetail.redeemPoints">兑换积分</h2>
+                <p data-i18n="customerDetail.availablePoints">可用积分: <span id="available-points">0</span></p>
+                <input type="number" id="redeem-amount" placeholder="" data-i18n-placeholder="customerDetail.redeemAmount" min="0">
+                <div class="modal-actions">
+                    <button class="btn-primary" id="confirm-redeem-btn" data-i18n="common.confirm">确认</button>
+                    <button class="btn-secondary" id="cancel-redeem-btn" data-i18n="common.cancel">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
