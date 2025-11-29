@@ -434,6 +434,7 @@ class WholesaleCRM {
     
     // 使用事件委托处理按钮点击（确保动态加载的按钮也能响应）
     const self = this;
+    // 使用捕获阶段确保优先处理导航按钮
     document.addEventListener('click', function(e) {
       // 首先检查是否点击了导航按钮或其内部元素（优先级最高）
       // 直接查找最近的 .nav-btn，无论点击的是按钮本身还是内部的 span
@@ -441,13 +442,14 @@ class WholesaleCRM {
       if (navBtn) {
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
         const page = navBtn.dataset.page || navBtn.getAttribute('data-page');
         if (page) {
+          // 确保页面切换
           self.showPage(page);
         }
         return false;
       }
+    }, true); // 使用捕获阶段
       
       // 检查是否点击了兑换积分按钮或其内部元素
       const redeemBtn = e.target.closest('#redeem-points-btn');
@@ -584,9 +586,12 @@ class WholesaleCRM {
       this.resetTransactionFilter();
     });
     
-    // 返回按钮
-    document.querySelectorAll('.back-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+    // 返回按钮 - 使用事件委托确保在PWA模式下也能工作
+    document.addEventListener('click', (e) => {
+      const backBtn = e.target.closest('.back-btn');
+      if (backBtn) {
+        e.preventDefault();
+        e.stopPropagation();
         // 根据当前页面状态，返回到对应的列表页面
         if (this.currentPage === 'customer-detail') {
           // 从客户详情页返回客户列表页
@@ -595,10 +600,19 @@ class WholesaleCRM {
           // 从商品详情页返回商品列表页
           this.showPage('products');
         } else {
-          // 默认返回客户列表页（向后兼容）
-          this.showPage('customers');
+          // 如果无法确定，检查哪个详情页面是激活的
+          const customerDetailPage = document.getElementById('customer-detail-page');
+          const productDetailPage = document.getElementById('product-detail-page');
+          if (customerDetailPage && customerDetailPage.classList.contains('active')) {
+            this.showPage('customers');
+          } else if (productDetailPage && productDetailPage.classList.contains('active')) {
+            this.showPage('products');
+          } else {
+            // 默认返回客户列表页（向后兼容）
+            this.showPage('customers');
+          }
         }
-      });
+      }
     });
     
     // 语言变更监听
