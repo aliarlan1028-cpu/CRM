@@ -34,6 +34,8 @@ body {
   overflow-x: hidden;
   /* 防止键盘弹起时页面缩放 */
   -webkit-text-size-adjust: 100%;
+  /* 语言切换过渡效果 */
+  transition: opacity 0.2s ease-in-out;
 }
 
 body.rtl {
@@ -286,8 +288,12 @@ body.rtl .top-bar {
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Noto Sans SC', 'Noto Sans Arabic', sans-serif;
+  position: relative;
+  overflow: hidden;
+  pointer-events: auto !important;
+  z-index: 1;
 }
 
 /* 维吾尔文按钮使用正确的字体 */
@@ -303,10 +309,18 @@ body.rtl #lang-ug {
 .lang-btn.active {
   background: var(--primary-color);
   color: white;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
 .lang-btn:hover {
   opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.lang-btn:active {
+  transform: scale(0.98);
+  transition: all 0.1s;
 }
 
 /* 导航栏 */

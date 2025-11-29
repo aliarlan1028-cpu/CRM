@@ -196,50 +196,67 @@ const translations = {
 let currentLang = 'zh';
 
 function setLanguage(lang) {
-  currentLang = lang;
-  document.documentElement.lang = lang === 'ug' ? 'ug' : 'zh-CN';
+  if (currentLang === lang) return; // 如果已经是当前语言，不执行切换
   
-  // 设置字体方向
-  if (lang === 'ug') {
-    document.documentElement.dir = 'rtl';
-    document.body.classList.add('rtl');
-  } else {
-    document.documentElement.dir = 'ltr';
-    document.body.classList.remove('rtl');
-  }
+  // 添加过渡效果
+  document.body.style.transition = 'opacity 0.2s ease-in-out';
+  document.body.style.opacity = '0.7';
   
-  // 更新所有文本
-  document.querySelectorAll('[data-i18n]').forEach(element => {
-    const key = element.getAttribute('data-i18n');
-    const value = getTranslation(key);
-    if (value) {
-      element.textContent = value;
+  // 使用 requestAnimationFrame 确保平滑过渡
+  requestAnimationFrame(() => {
+    currentLang = lang;
+    document.documentElement.lang = lang === 'ug' ? 'ug' : 'zh-CN';
+    
+    // 设置字体方向
+    if (lang === 'ug') {
+      document.documentElement.dir = 'rtl';
+      document.body.classList.add('rtl');
+    } else {
+      document.documentElement.dir = 'ltr';
+      document.body.classList.remove('rtl');
     }
+    
+    // 更新所有文本
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      const value = getTranslation(key);
+      if (value) {
+        element.textContent = value;
+      }
+    });
+    
+    // 更新占位符
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+      const key = element.getAttribute('data-i18n-placeholder');
+      const value = getTranslation(key);
+      if (value) {
+        element.placeholder = value;
+      }
+    });
+    
+    // 更新 select 选项
+    const customerSelect = document.getElementById('customer-select');
+    if (customerSelect && customerSelect.firstElementChild) {
+      const firstOption = customerSelect.firstElementChild;
+      if (firstOption.value === '') {
+        firstOption.textContent = getTranslation('transaction.selectCustomer');
+      }
+    }
+    
+    // 保存语言设置
+    localStorage.setItem('language', lang);
+    
+    // 恢复透明度
+    requestAnimationFrame(() => {
+      document.body.style.opacity = '1';
+      setTimeout(() => {
+        document.body.style.transition = '';
+      }, 200);
+    });
+    
+    // 触发语言变更事件
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
   });
-  
-  // 更新占位符
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-    const key = element.getAttribute('data-i18n-placeholder');
-    const value = getTranslation(key);
-    if (value) {
-      element.placeholder = value;
-    }
-  });
-  
-  // 更新 select 选项
-  const customerSelect = document.getElementById('customer-select');
-  if (customerSelect && customerSelect.firstElementChild) {
-    const firstOption = customerSelect.firstElementChild;
-    if (firstOption.value === '') {
-      firstOption.textContent = getTranslation('transaction.selectCustomer');
-    }
-  }
-  
-  // 保存语言设置
-  localStorage.setItem('language', lang);
-  
-  // 触发语言变更事件
-  window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
 }
 
 function getTranslation(key) {
@@ -256,17 +273,34 @@ function t(key) {
 }
 
 // 初始化语言
-document.addEventListener('DOMContentLoaded', () => {
+function initLanguage() {
   const savedLang = localStorage.getItem('language') || 'zh';
   setLanguage(savedLang);
   
-  // 语言切换按钮
-  document.getElementById('lang-zh').addEventListener('click', () => setLanguage('zh'));
-  document.getElementById('lang-ug').addEventListener('click', () => setLanguage('ug'));
+  // 使用事件委托处理语言切换按钮（确保PWA模式下也能工作）
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'lang-zh' || e.target.closest('#lang-zh')) {
+      e.preventDefault();
+      e.stopPropagation();
+      setLanguage('zh');
+    } else if (e.target.id === 'lang-ug' || e.target.closest('#lang-ug')) {
+      e.preventDefault();
+      e.stopPropagation();
+      setLanguage('ug');
+    }
+  });
   
   // 更新按钮状态
   updateLanguageButtons();
-});
+}
+
+// 支持多种初始化方式，确保PWA模式下也能工作
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLanguage);
+} else {
+  // DOM已经加载完成，直接初始化
+  initLanguage();
+}
 
 function updateLanguageButtons() {
   document.getElementById('lang-zh').classList.toggle('active', currentLang === 'zh');

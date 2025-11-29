@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wholesale-crm-v1';
+const CACHE_NAME = 'wholesale-crm-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -16,12 +16,32 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        return response || fetch(event.request);
-      })
-  );
+  // 对于导航请求，始终尝试网络优先，然后回退到缓存
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // 如果网络请求成功，更新缓存
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          // 网络失败，使用缓存
+          return caches.match(event.request);
+        })
+    );
+  } else {
+    // 对于其他资源，使用缓存优先策略
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          return response || fetch(event.request);
+        })
+    );
+  }
 });
 
 self.addEventListener('activate', (event) => {

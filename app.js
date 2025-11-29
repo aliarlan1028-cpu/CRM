@@ -2456,7 +2456,26 @@ class WholesaleCRM {
 // 初始化应用
 let app;
 
-document.addEventListener('DOMContentLoaded', () => {
-  app = new WholesaleCRM();
-});
+function initApp() {
+  if (!app) {
+    app = new WholesaleCRM();
+  }
+}
+
+// 支持多种初始化方式，确保PWA模式下也能工作
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  // DOM已经加载完成，直接初始化
+  initApp();
+}
+
+// 如果window已经加载完成，也尝试初始化（PWA模式）
+if (window.performance && window.performance.timing) {
+  window.addEventListener('load', () => {
+    if (!app) {
+      initApp();
+    }
+  });
+}
 
