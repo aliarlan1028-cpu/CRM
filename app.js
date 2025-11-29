@@ -260,16 +260,21 @@ class WholesaleCRM {
     // 监听页面滚动事件，确保导航栏始终在底部
     let scrollTimeout;
     window.addEventListener('scroll', () => {
-      // 立即修复位置
+      // 立即强制修复位置，确保导航栏不移动
       setNavPosition();
       // 清除之前的定时器
       if (scrollTimeout) {
         clearTimeout(scrollTimeout);
       }
-      // 滚动结束后再次确保位置正确
+      // 滚动过程中持续修复位置
       scrollTimeout = setTimeout(() => {
         setNavPosition();
-      }, 50);
+      }, 10); // 缩短间隔，更频繁地修复
+    }, { passive: true });
+    
+    // 监听触摸滚动事件（移动端）
+    window.addEventListener('touchmove', () => {
+      setNavPosition();
     }, { passive: true });
     
     // 使用 requestAnimationFrame 持续监控并修复位置
