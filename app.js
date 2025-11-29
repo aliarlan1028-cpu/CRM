@@ -1952,7 +1952,11 @@ class WholesaleCRM {
         payments.forEach(payment => {
           const li = document.createElement('li');
           const date = new Date(payment.date).toLocaleDateString();
-          li.innerHTML = `<span>${date}</span><span>+¥${payment.amount.toFixed(2)}</span>`;
+          // 在RTL模式下，使用Unicode LTR标记强制符号和数字从左到右显示
+          const amountText = lang === 'ug' 
+            ? `\u202A+¥${payment.amount.toFixed(2)}\u202C`
+            : `+¥${payment.amount.toFixed(2)}`;
+          li.innerHTML = `<span>${date}</span><span>${amountText}</span>`;
           paymentHistoryList.appendChild(li);
         });
       }
@@ -1977,7 +1981,11 @@ class WholesaleCRM {
         redemptions.forEach(redemption => {
           const li = document.createElement('li');
           const date = new Date(redemption.date).toLocaleDateString();
-          li.innerHTML = `<span>${date}</span><span>-${redemption.points}</span>`;
+          // 在RTL模式下，使用Unicode LTR标记强制符号和数字从左到右显示
+          const pointsText = lang === 'ug' 
+            ? `\u202A-${redemption.points}\u202C`
+            : `-${redemption.points}`;
+          li.innerHTML = `<span>${date}</span><span>${pointsText}</span>`;
           pointsHistoryList.appendChild(li);
         });
       }
