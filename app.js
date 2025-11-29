@@ -343,7 +343,25 @@ class WholesaleCRM {
   }
   
   setupEventListeners() {
-    // 导航按钮的事件委托已经在下面的统一事件委托中处理
+    // 导航按钮 - 直接绑定事件监听器确保可靠
+    const self = this;
+    const navButtons = document.querySelectorAll('.nav-btn');
+    navButtons.forEach(btn => {
+      // 使用 once: false 确保可以多次触发
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        const page = this.dataset.page || this.getAttribute('data-page');
+        if (page) {
+          try {
+            self.showPage(page);
+          } catch (error) {
+            console.error('导航按钮点击错误:', error, page);
+          }
+        }
+      }, { capture: true, passive: false }); // 使用捕获阶段确保优先处理
+    });
     
     // 交易表单
     const transactionForm = document.getElementById('transaction-form');
@@ -432,24 +450,12 @@ class WholesaleCRM {
       this.hideAddProductModal();
     });
     
-    // 使用事件委托处理按钮点击（确保动态加载的按钮也能响应）
+    // 使用事件委托处理其他按钮点击（确保动态加载的按钮也能响应）
     const self = this;
     document.addEventListener('click', function(e) {
-      // 首先检查是否点击了导航按钮或其内部元素（优先级最高）
-      const navBtn = e.target.closest('.nav-btn');
-      if (navBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        const page = navBtn.dataset.page || navBtn.getAttribute('data-page');
-        if (page) {
-          // 确保页面切换
-          try {
-            self.showPage(page);
-          } catch (error) {
-            console.error('导航按钮点击错误:', error);
-          }
-        }
-        return false;
+      // 跳过导航按钮（已经直接绑定）
+      if (e.target.closest('.nav-btn')) {
+        return;
       }
       
       // 检查是否点击了兑换积分按钮或其内部元素
