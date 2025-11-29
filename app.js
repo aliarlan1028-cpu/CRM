@@ -273,7 +273,6 @@ class WholesaleCRM {
     }, { passive: true });
     
     // 使用 requestAnimationFrame 持续监控并修复位置
-    let rafId = null;
     const checkNavPosition = () => {
       const computedStyle = window.getComputedStyle(nav);
       const rect = nav.getBoundingClientRect();
@@ -345,23 +344,34 @@ class WholesaleCRM {
   setupEventListeners() {
     // 导航按钮 - 直接绑定事件监听器确保可靠
     const self = this;
-    const navButtons = document.querySelectorAll('.nav-btn');
-    navButtons.forEach(btn => {
-      // 使用 once: false 确保可以多次触发
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        const page = this.dataset.page || this.getAttribute('data-page');
-        if (page) {
-          try {
-            self.showPage(page);
-          } catch (error) {
-            console.error('导航按钮点击错误:', error, page);
+    // 延迟绑定确保DOM完全加载
+    setTimeout(() => {
+      const navButtons = document.querySelectorAll('.nav-btn');
+      console.log('找到导航按钮数量:', navButtons.length);
+      navButtons.forEach((btn, index) => {
+        const page = btn.dataset.page || btn.getAttribute('data-page');
+        console.log(`导航按钮 ${index}:`, page, btn);
+        
+        // 移除可能存在的旧事件监听器
+        const newHandler = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          const pageName = this.dataset.page || this.getAttribute('data-page');
+          console.log('导航按钮被点击:', pageName);
+          if (pageName) {
+            try {
+              self.showPage(pageName);
+            } catch (error) {
+              console.error('导航按钮点击错误:', error, pageName);
+            }
           }
-        }
-      }, { capture: true, passive: false }); // 使用捕获阶段确保优先处理
-    });
+        };
+        
+        // 绑定新的事件监听器
+        btn.addEventListener('click', newHandler, { capture: true, passive: false });
+      });
+    }, 100);
     
     // 交易表单
     const transactionForm = document.getElementById('transaction-form');
@@ -2128,12 +2138,12 @@ class WholesaleCRM {
     } else if (method === 'partial') {
       paidAmountGroup.style.display = 'block';
       debtAmountGroup.style.display = 'block';
-      if (amountInput.value) {
-        const amount = parseFloat(amountInput.value);
-        if (!paidAmountInput.value && !debtAmountInput.value) {
-          paidAmountInput.value = (amount / 2).toFixed(2);
-          this.calculateDebtAmount();
-        }
+      // 不设置默认值，让用户手动输入
+      if (!paidAmountInput.value) {
+        paidAmountInput.value = '';
+      }
+      if (!debtAmountInput.value) {
+        debtAmountInput.value = '';
       }
     } else if (method === 'debt') {
       paidAmountGroup.style.display = 'none';
