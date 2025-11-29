@@ -705,6 +705,22 @@ body.rtl .form-group label {
   font-size: 16px;
   transition: border-color 0.3s;
   font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* 日期输入框特定样式 */
+input[type="date"] {
+  font-size: 16px;
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
 }
 
 /* 支付方式下拉框样式优化 */
@@ -1589,6 +1605,56 @@ body.rtl .empty-message {
   .lang-btn {
     padding: 6px 12px;
     font-size: 12px;
+  }
+
+  /* 手机端日期输入框优化 */
+  input[type="date"] {
+    width: 100%;
+    max-width: 100%;
+    font-size: 16px !important; /* 防止iOS缩放 */
+    padding: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 44px; /* iOS推荐的最小触摸目标 */
+    box-sizing: border-box;
+  }
+
+  /* 确保日期选择器在移动端正常显示 */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin-left: 8px;
+    padding: 0;
+  }
+
+  body.rtl input[type="date"]::-webkit-calendar-picker-indicator {
+    margin-left: 0;
+    margin-right: 8px;
+  }
+
+  /* 日期输入框在移动端的显示优化 */
+  #date-input {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+  }
+
+  /* 确保日期输入框文本可读 */
+  input[type="date"]::-webkit-datetime-edit {
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    flex: 1;
+  }
+
+  input[type="date"]::-webkit-datetime-edit-text {
+    padding: 0 4px;
   }
 }
 
