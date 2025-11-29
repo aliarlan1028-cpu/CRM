@@ -434,10 +434,8 @@ class WholesaleCRM {
     
     // 使用事件委托处理按钮点击（确保动态加载的按钮也能响应）
     const self = this;
-    // 使用捕获阶段确保优先处理导航按钮
     document.addEventListener('click', function(e) {
       // 首先检查是否点击了导航按钮或其内部元素（优先级最高）
-      // 直接查找最近的 .nav-btn，无论点击的是按钮本身还是内部的 span
       const navBtn = e.target.closest('.nav-btn');
       if (navBtn) {
         e.preventDefault();
@@ -445,11 +443,14 @@ class WholesaleCRM {
         const page = navBtn.dataset.page || navBtn.getAttribute('data-page');
         if (page) {
           // 确保页面切换
-          self.showPage(page);
+          try {
+            self.showPage(page);
+          } catch (error) {
+            console.error('导航按钮点击错误:', error);
+          }
         }
         return false;
       }
-    }, true); // 使用捕获阶段
       
       // 检查是否点击了兑换积分按钮或其内部元素
       const redeemBtn = e.target.closest('#redeem-points-btn');
@@ -457,7 +458,7 @@ class WholesaleCRM {
         e.preventDefault();
         e.stopPropagation();
         self.showRedeemModal();
-        return;
+        return false;
       }
       
       // 检查是否点击了已收款按钮或其内部元素
@@ -466,7 +467,7 @@ class WholesaleCRM {
         e.preventDefault();
         e.stopPropagation();
         self.showRecordPaymentModal();
-        return;
+        return false;
       }
       
       // 检查是否点击了补货按钮或其内部元素
@@ -475,7 +476,7 @@ class WholesaleCRM {
         e.preventDefault();
         e.stopPropagation();
         self.showRestockModal();
-        return;
+        return false;
       }
       
       // 检查是否点击了编辑客户按钮
@@ -484,7 +485,7 @@ class WholesaleCRM {
         e.preventDefault();
         e.stopPropagation();
         self.showEditCustomerModal();
-        return;
+        return false;
       }
       
       // 检查是否点击了编辑商品按钮
@@ -493,7 +494,7 @@ class WholesaleCRM {
         e.preventDefault();
         e.stopPropagation();
         self.showEditProductModal();
-        return;
+        return false;
       }
       
       // 检查是否点击了删除交易按钮
@@ -503,7 +504,7 @@ class WholesaleCRM {
         e.stopPropagation();
         const transactionId = deleteTransactionBtn.dataset.transactionId;
         self.deleteTransaction(transactionId);
-        return;
+        return false;
       }
     });
     
@@ -592,25 +593,28 @@ class WholesaleCRM {
       if (backBtn) {
         e.preventDefault();
         e.stopPropagation();
-        // 根据当前页面状态，返回到对应的列表页面
-        if (this.currentPage === 'customer-detail') {
+        
+        // 优先检查哪个详情页面是激活的（最可靠的方法）
+        const customerDetailPage = document.getElementById('customer-detail-page');
+        const productDetailPage = document.getElementById('product-detail-page');
+        
+        if (productDetailPage && productDetailPage.classList.contains('active')) {
+          // 从商品详情页返回商品列表页
+          this.currentPage = 'products'; // 确保状态正确
+          this.showPage('products');
+        } else if (customerDetailPage && customerDetailPage.classList.contains('active')) {
           // 从客户详情页返回客户列表页
+          this.currentPage = 'customers'; // 确保状态正确
           this.showPage('customers');
         } else if (this.currentPage === 'product-detail') {
-          // 从商品详情页返回商品列表页
+          // 备用：使用 currentPage 状态
           this.showPage('products');
+        } else if (this.currentPage === 'customer-detail') {
+          // 备用：使用 currentPage 状态
+          this.showPage('customers');
         } else {
-          // 如果无法确定，检查哪个详情页面是激活的
-          const customerDetailPage = document.getElementById('customer-detail-page');
-          const productDetailPage = document.getElementById('product-detail-page');
-          if (customerDetailPage && customerDetailPage.classList.contains('active')) {
-            this.showPage('customers');
-          } else if (productDetailPage && productDetailPage.classList.contains('active')) {
-            this.showPage('products');
-          } else {
-            // 默认返回客户列表页（向后兼容）
-            this.showPage('customers');
-          }
+          // 默认返回客户列表页（向后兼容）
+          this.showPage('customers');
         }
       }
     });
@@ -834,12 +838,19 @@ class WholesaleCRM {
     container.innerHTML = '';
     filtered.forEach(customer => {
       const card = document.createElement('div');
-      card.className = 'customer-card';
+      const stats = this.getCustomerStats(customer.name);
+      
+      // 检查是否有欠款，如果有则添加红色样式
+      if (stats.pendingDebt > 0) {
+        card.className = 'customer-card customer-card-debt';
+      } else {
+        card.className = 'customer-card';
+      }
+      
       card.addEventListener('click', () => {
         this.showCustomerDetail(customer.name);
       });
       
-      const stats = this.getCustomerStats(customer.name);
       const lang = localStorage.getItem('language') || 'zh';
       const totalRevenueText = lang === 'ug' ? 'جەمئىي سېتىۋېلىش' : '累计购买';
       const currentPointsText = lang === 'ug' ? 'جەمئىي ئۇچۇر' : '累计积分';
@@ -2472,7 +2483,12 @@ let app;
 
 function initApp() {
   if (!app) {
-    app = new WholesaleCRM();
+    try {
+      app = new WholesaleCRM();
+      console.log('应用初始化成功');
+    } catch (error) {
+      console.error('应用初始化失败:', error);
+    }
   }
 }
 
@@ -2485,11 +2501,9 @@ if (document.readyState === 'loading') {
 }
 
 // 如果window已经加载完成，也尝试初始化（PWA模式）
-if (window.performance && window.performance.timing) {
-  window.addEventListener('load', () => {
-    if (!app) {
-      initApp();
-    }
-  });
-}
+window.addEventListener('load', () => {
+  if (!app) {
+    initApp();
+  }
+});
 
