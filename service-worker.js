@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wholesale-crm-v2';
+const CACHE_NAME = 'wholesale-crm-v3';
 const urlsToCache = [
   './',
   './index.html',

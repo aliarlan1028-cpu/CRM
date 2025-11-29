@@ -342,23 +342,22 @@ class WholesaleCRM {
   }
   
   setupEventListeners() {
-    // 导航按钮 - 直接绑定事件监听器确保可靠
+    // 保存 this 引用，供所有事件处理器使用
     const self = this;
+    
+    // 导航按钮 - 直接绑定事件监听器确保可靠
     // 延迟绑定确保DOM完全加载
     setTimeout(() => {
       const navButtons = document.querySelectorAll('.nav-btn');
-      console.log('找到导航按钮数量:', navButtons.length);
-      navButtons.forEach((btn, index) => {
+      navButtons.forEach((btn) => {
         const page = btn.dataset.page || btn.getAttribute('data-page');
-        console.log(`导航按钮 ${index}:`, page, btn);
         
-        // 移除可能存在的旧事件监听器
+        // 绑定事件监听器
         const newHandler = function(e) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
           const pageName = this.dataset.page || this.getAttribute('data-page');
-          console.log('导航按钮被点击:', pageName);
           if (pageName) {
             try {
               self.showPage(pageName);
@@ -461,7 +460,6 @@ class WholesaleCRM {
     });
     
     // 使用事件委托处理其他按钮点击（确保动态加载的按钮也能响应）
-    const self = this;
     document.addEventListener('click', function(e) {
       // 跳过导航按钮（已经直接绑定）
       if (e.target.closest('.nav-btn')) {
